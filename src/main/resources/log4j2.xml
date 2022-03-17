@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!--Configuration后面的status,这个用于设置log4j2自身内部的信息输出,可以不设置,当设置成trace时,你会看到log4j2内部各种详细输出-->
+<!--monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身,设置间隔秒数-->
+<Configuration status="warn" monitorInterval="300">
+    <!-- 日志文件信息配置 -->
+    <properties>
+        <!--本应用名称，同时也直接作为文件名称-->
+        <property name="APP_NAME">boc-service</property>
+        <!--日志文件夹根目录-->
+        <property name="LOG_HOME">${sys:catalina.base:-d:}/logs/${APP_NAME}</property>
+        <property name="FILE_NAME">${APP_NAME}</property>
+
+        <!--输入日志格式化-->
+        <Property name="CONSOLE_LOG_PATTERN"
+                  value="[%-5p] %d: %X{RequestId} %X{SpanId}: %l: %m %n "/>
+        <!--        <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%logger{50}:%L]  - %msg%n"/>        -->
+        <property name="LOG_PATTERN" value="[%-5p] %d: %X{RequestId} %X{SpanId}: %l: %m %n "/>
+
+        <!--分隔保存文件根目录-->
+        <property name="LOG_FILE_ROOT_PATH">${LOG_HOME}/$${date:yyyy-MM}</property>
+
+        <!-- 日志文件最小切割单位 值不做强制要求，建议300MB -->
+        <property name="every_file_size">30MB</property>
+        <!-- *必须并强制遵守 日志文件的编码 -->
+        <property name="log_charset">UTF-8</property>
+        <!--最多保存30天以内日志-->
+        <property name="save_date">30d</property>
+        <!--最多保存日志数量-->
+        <property name="save_sum">1000</property>
+    </properties>
+
+    <Appenders>
+        <!-- 日志信息控制台输出 -->
+        <!--console-->
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <Filters>
+                <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <!--输出日志的格式-->
+            <PatternLayout pattern="${CONSOLE_LOG_PATTERN}" charset="${log_charset}"/>
+        </Console>
+        <RollingRandomAccessFile name="FILE-DEBUG"
+                                 fileName="${LOG_HOME}/debug.log"
+                                 filePattern="${LOG_FILE_ROOT_PATH}/debug-%d{yyyy-MM-dd}-%i.log.gz"
+                                 immediateFlush="false">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="${log_charset}"/>
+            <Filters>
+                <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <!--下面任一条件为真就触发分隔文件并压缩文件-->
+                <!--每次服务重启的时候出发-->
+                <OnStartupTriggeringPolicy />
+                <!--当一天过去了也会分隔文件出来 -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <!--当文件大小超过设置定值就会分隔文件出来-->
+                <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+            </Policies>
+            <!-- 最多备份30天以内||日志文件大小达到100GB的日志||文件数量超过十个 此处为策略限制，Delete中可以按自己需要用正则表达式编写 -->
+            <DefaultRolloverStrategy>
+                <!--当文件操过30天的文件删除 -->
+                <Delete basePath="${LOG_HOME}" maxDepth="3">
+                    <IfFileName glob="*/debug-*.log"/>
+                    <IfLastModified age="${save_date}"/>
+                    <IfAccumulatedFileSize exceeds="10 GB" />
+                    <IfAccumulatedFileCount exceeds="${save_sum}" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="FILE-INFO"
+                                 fileName="${LOG_HOME}/info.log"
+                                 filePattern="${LOG_FILE_ROOT_PATH}/info-%d{yyyy-MM-dd}-%i.log.gz"
+                                 immediateFlush="false">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="${log_charset}"/>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <!--下面任一条件为真就触发分隔文件并压缩文件-->
+                <!--每次服务重启的时候出发-->
+                <OnStartupTriggeringPolicy />
+                <!--当一天过去了也会分隔文件出来 -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <!--当文件大小超过设置定值就会分隔文件出来-->
+                <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+            </Policies>
+            <!-- 最多备份30天以内||日志文件大小达到100GB的日志||文件数量超过十个 此处为策略限制，Delete中可以按自己需要用正则表达式编写 -->
+            <DefaultRolloverStrategy>
+                <!--当文件操过30天的文件删除 -->
+                <Delete basePath="${LOG_HOME}" maxDepth="3">
+                    <IfFileName glob="*/info-*.log"/>
+                    <IfLastModified age="${save_date}"/>
+                    <IfAccumulatedFileSize exceeds="10 GB" />
+                    <IfAccumulatedFileCount exceeds="${save_sum}" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="FILE-WARN"
+                                 fileName="${LOG_HOME}/warn.log"
+                                 filePattern="${LOG_FILE_ROOT_PATH}/warn-%d{yyyy-MM-dd}-%i.log.gz"
+                                 immediateFlush="false">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="${log_charset}"/>
+            <Filters>
+                <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <!--下面任一条件为真就触发分隔文件并压缩文件-->
+                <!--每次服务重启的时候出发-->
+                <OnStartupTriggeringPolicy />
+                <!--当一天过去了也会分隔文件出来 -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <!--当文件大小超过设置定值就会分隔文件出来-->
+                <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+            </Policies>
+            <!-- 最多备份30天以内||日志文件大小达到100GB的日志||文件数量超过十个 此处为策略限制，Delete中可以按自己需要用正则表达式编写 -->
+            <DefaultRolloverStrategy>
+                <!--当文件操过30天的文件删除 -->
+                <Delete basePath="${LOG_HOME}" maxDepth="3">
+                    <IfFileName glob="*/warn-*.log"/>
+                    <IfLastModified age="${save_date}"/>
+                    <IfAccumulatedFileSize exceeds="10 GB" />
+                    <IfAccumulatedFileCount exceeds="${save_sum}" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="FILE-ERROR"
+                                 fileName="${LOG_HOME}/error.log"
+                                 filePattern="${LOG_FILE_ROOT_PATH}/error-%d{yyyy-MM-dd}-%i.log.gz"
+                                 immediateFlush="false">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="${log_charset}"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <!--下面任一条件为真就触发分隔文件并压缩文件-->
+                <!--每次服务重启的时候出发-->
+                <OnStartupTriggeringPolicy />
+                <!--当一天过去了也会分隔文件出来 -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <!--当文件大小超过设置定值就会分隔文件出来-->
+                <SizeBasedTriggeringPolicy size="${every_file_size}"/>
+            </Policies>
+            <!-- 最多备份30天以内||日志文件大小达到100GB的日志||文件数量超过十个 此处为策略限制，Delete中可以按自己需要用正则表达式编写 -->
+            <DefaultRolloverStrategy>
+                <!--当文件操过30天的文件删除 -->
+                <Delete basePath="${LOG_HOME}" maxDepth="3">
+                    <IfFileName glob="*/error-*.log"/>
+                    <IfLastModified age="${save_date}"/>
+                    <IfAccumulatedFileSize exceeds="10 GB" />
+                    <IfAccumulatedFileCount exceeds="${save_sum}" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+
+
+        <!-- 运行日志，文件输出 -->
+        <!--        <RollingRandomAccessFile name="running-log" fileName="${LOG_HOME}/${FILE_NAME}.log"-->
+        <!--                                 filePattern="${LOG_HOME}/$${date:yyyy-MM}/${FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">-->
+        <!--            <PatternLayout pattern="[%-5p] %d: %X{RequestId} %X{SpanId}: %l: %m %n" />-->
+        <!--            <Policies>-->
+        <!--                <TimeBasedTriggeringPolicy />-->
+        <!--                <SizeBasedTriggeringPolicy size="10 MB" />-->
+        <!--            </Policies>-->
+        <!--            <DefaultRolloverStrategy max="30" />-->
+        <!--        </RollingRandomAccessFile>-->
+    </Appenders>
+
+    <Loggers>
+        <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
+        <!--<AsyncLogger name="org.mybatis" level="warn"/>
+        <AsyncLogger name="com.baomidou" level="warn"/>
+        <AsyncLogger name="org.apache" level="warn"/>
+        <AsyncLogger name="org.springframework" level="warn"/>
+        <AsyncLogger name="springfox" level="warn"/>-->
+
+        <AsyncLogger name="com.demo" level="info"/>
+
+        <!--AsyncRoot-->
+        <AsyncRoot level="info" includeLocation="true">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE-INFO"/>
+            <appender-ref ref="FILE-WARN"/>
+            <appender-ref ref="FILE-ERROR"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>

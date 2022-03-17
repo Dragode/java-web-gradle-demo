@@ -1,0 +1,1 @@
+Demo project of java based web project use gradle as build tool.

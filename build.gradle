@@ -1,0 +1,58 @@
+import com.demo.CodeGenerateTask
+
+plugins {
+    id 'org.springframework.boot' version '2.6.4'
+}
+
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.boc'
+version = '1.0.0-SNAPSHOT'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.data:spring-data-commons'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    //spring-boot-starter-log4j2的依赖
+    implementation 'com.lmax:disruptor:3.4.4'
+    //将spring-boot-start-*中默认依赖的spring-boot-starter-logging模块，替换成log4j
+    modules {
+        module('org.springframework.boot:spring-boot-starter-logging') {
+            replacedBy('org.springframework.boot:spring-boot-starter-log4j2', 'Use Log4j2 instead of Logback')
+        }
+    }
+    implementation 'io.springfox:springfox-swagger2:3.0.0'
+    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.projectlombok:lombok'
+    implementation 'cn.hutool:hutool-all:5.7.22'
+    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'mysql:mysql-connector-java'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+compileJava {
+    options.compilerArgs = [
+            '-Amapstruct.suppressGeneratorTimestamp=true',
+            '-Amapstruct.suppressGeneratorVersionInfoComment=true'
+    ]
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+//generate-code -Pauthor=dragode -PuserConsole=true -PdataSourceEnv=debug
+//generate-code -Pauthor=dragode -Ptables=t_xxx -PdataSourceEnv=debug
+tasks.register("generate-code", CodeGenerateTask, "com.demo")

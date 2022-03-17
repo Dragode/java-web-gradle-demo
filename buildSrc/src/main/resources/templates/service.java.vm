@@ -1,0 +1,67 @@
+#parse("/templates/MacroStringUtils.vm")
+package ${package.Service};
+
+import ${package.Entity}.${entity};
+import ${superServiceClassPackage};
+#if(${restControllerStyle})
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import ${cfg.package.entityVO}.${cfg.table.entityVoName};
+import ${cfg.package.entityCreateVO}.${cfg.table.entityCreateVoName};
+import ${cfg.package.entityUpdateVO}.${cfg.table.entityUpdateVoName};
+#end
+/**
+ * <p>
+ * $!{table.comment} 服务类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${kotlin})
+interface ${table.serviceName} : ${superServiceClass}<${entity}>
+#else
+public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
+#if(${restControllerStyle})
+#set($serviceVariablename="#uncapitalize(${table.serviceName})")
+#set($createVoVariablename="#uncapitalize(${cfg.table.entityCreateVoName})")
+#set($updateVoVariablename="#uncapitalize(${cfg.table.entityUpdateVoName})")
+#foreach($field in ${table.fields})
+    #if(${field.keyFlag})
+        #set($keyPropertyName=${field.propertyName})
+        #set($keyPropertyType=${field.propertyType})
+    #end
+#end
+    /**
+      * 新增$!{table.comment}
+      * @param ${createVoVariablename}
+      */
+    ${cfg.table.entityVoName} create(${cfg.table.entityCreateVoName} ${createVoVariablename});
+
+    /**
+     * 更新$!{table.comment}
+     * @param ${updateVoVariablename}
+     */
+    ${cfg.table.entityVoName} update(${keyPropertyType} ${keyPropertyName}, ${cfg.table.entityUpdateVoName} ${updateVoVariablename});
+
+    /**
+     * 获取$!{table.comment}
+     * @param ${keyPropertyName}
+     */
+    ${cfg.table.entityVoName} get(${keyPropertyType} ${keyPropertyName});
+
+    /**
+     * 删除$!{table.comment}
+     * @param ${keyPropertyName}
+     */
+    int delete(${keyPropertyType} ${keyPropertyName});
+
+    /**
+     * 分页获取$!{table.comment}列表
+     * @param pageable 分页查询参数
+     * @param searchKey 搜索关键字
+     */
+    PageImpl<${cfg.table.entityVoName}> getByPageable(Pageable pageable, String searchKey);
+#end
+}
+#end

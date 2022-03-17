@@ -1,0 +1,6 @@
+#macro (uncapitalize $data)$cfg.StringUtils.uncapitalize($data)#end
+#macro (capitalize $data)$cfg.StringUtils.capitalize($data)#end
+#macro (upperCase $data)$cfg.StringUtils.upperCase($data)#end
+#macro (camelToUnderline $data)$cfg.StringUtils.camelToUnderline($data)#end
+#macro (underlineToCamel $data)$cfg.StringUtils.underlineToCamel($data)#end
+#macro (underlineToBigCamel $data)$cfg.StringUtils.underlineToBigCamel($data)#end

@@ -1,0 +1,131 @@
+#parse("/templates/MacroStringUtils.vm")
+package ${package.ServiceImpl};
+
+import ${package.Entity}.${entity};
+import ${package.Mapper}.${table.mapperName};
+import ${package.Service}.${table.serviceName};
+import ${superServiceImplClassPackage};
+import org.springframework.stereotype.Service;
+
+#if(${restControllerStyle})
+import org.springframework.beans.BeanUtils;
+import ${cfg.package.entityVO}.${cfg.table.entityVoName};
+import ${cfg.package.entityCreateVO}.${cfg.table.entityCreateVoName};
+import ${cfg.package.entityUpdateVO}.${cfg.table.entityUpdateVoName};
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import ${cfg.package.parentPackage}.util.PageUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
+import java.util.List;
+import java.util.stream.Collectors;
+#end
+
+/**
+ * <p>
+ * $!{table.comment} 服务实现类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Service
+#if(${kotlin})
+open class ${table.serviceImplName} : ${superServiceImplClass}<${table.mapperName}, ${entity}>(), ${table.serviceName} {
+
+}
+#else
+public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}> implements ${table.serviceName} {
+#if(${restControllerStyle})
+    #set($entityVariablename="#uncapitalize(${entity})")
+    #set($entityVoVariablename="#uncapitalize(${cfg.table.entityVoName})")
+    #set($serviceVariablename="#uncapitalize(${table.serviceName})")
+    #set($createVoVariablename="#uncapitalize(${cfg.table.entityCreateVoName})")
+    #set($updateVoVariablename="#uncapitalize(${cfg.table.entityUpdateVoName})")
+    #foreach($field in ${table.fields})
+        #if(${field.keyFlag})
+            #set($keyPropertyCapitalName=${field.capitalName})
+            #set($keyPropertyName=${field.propertyName})
+            #set($keyPropertyType=${field.propertyType})
+        #end
+    #end
+    /**
+     * 新增$!{table.comment}
+     * @param ${createVoVariablename}
+     */
+    @Override
+    public ${cfg.table.entityVoName} create(${cfg.table.entityCreateVoName} ${createVoVariablename}){
+        ${entity} ${entityVariablename} = new ${entity}();
+        BeanUtils.copyProperties(${createVoVariablename},${entityVariablename});
+        this.baseMapper.insert(${entityVariablename});
+        ${entityVariablename} = this.baseMapper.selectById(${entityVariablename}.get${keyPropertyCapitalName}());
+        ${cfg.table.entityVoName} ${entityVoVariablename} = new ${cfg.table.entityVoName}();
+        BeanUtils.copyProperties(${entityVariablename},${entityVoVariablename});
+        return ${entityVoVariablename};
+    }
+
+    /**
+     * 更新$!{table.comment}
+     * @param ${updateVoVariablename}
+     */
+    @Override
+    public ${cfg.table.entityVoName} update(${keyPropertyType} ${keyPropertyName}, ${cfg.table.entityUpdateVoName} ${updateVoVariablename}){
+        ${entity} ${entityVariablename} = new ${entity}();
+        BeanUtils.copyProperties(${updateVoVariablename},${entityVariablename});
+        ${entityVariablename}.set${keyPropertyCapitalName}(${keyPropertyName});
+        this.baseMapper.updateById(${entityVariablename});
+        ${entityVariablename} =this.baseMapper.selectById(${keyPropertyName});
+        ${cfg.table.entityVoName} ${entityVoVariablename} = new ${cfg.table.entityVoName}();
+        BeanUtils.copyProperties(${entityVariablename},${entityVoVariablename});
+        return ${entityVoVariablename};
+    }
+
+    /**
+     * 获取$!{table.comment}
+     * @param ${keyPropertyName}
+     */
+    @Override
+    public ${cfg.table.entityVoName} get(${keyPropertyType} ${keyPropertyName}){
+        ${entity} ${entityVariablename} = this.baseMapper.selectById(${keyPropertyName});
+        if(${entityVariablename}==null){
+            return null;
+        }
+        ${cfg.table.entityVoName} ${entityVoVariablename} = new ${cfg.table.entityVoName}();
+        BeanUtils.copyProperties(${entityVariablename},${entityVoVariablename});
+        return ${entityVoVariablename};
+    }
+
+    /**
+     * 删除$!{table.comment}
+     * @param ${keyPropertyName}
+     */
+    @Override
+    public int delete(${keyPropertyType} ${keyPropertyName}){
+        return this.baseMapper.deleteById(${keyPropertyName});
+    }
+
+    /**
+     * 分页获取$!{table.comment}列表
+     * @param pageable 分页查询参数
+     * @param searchKey 搜索关键字
+     */
+    @Override
+    public PageImpl<${cfg.table.entityVoName}> getByPageable(Pageable pageable, String searchKey) {
+        LambdaQueryWrapper<${entity}> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(searchKey)) {
+            //  queryWrapper.and(wq -> wq.like(${entity}::get${keyPropertyCapitalName}, searchKey).or().like(${entity}::get${keyPropertyCapitalName}, searchKey));
+        }
+        IPage<${entity}> results = this.baseMapper.selectPage(PageUtils.pageableToPage(pageable), queryWrapper);
+        List<${cfg.table.entityVoName}> voRecords = results.getRecords().stream().map(${entityVariablename}->{
+            ${cfg.table.entityVoName} ${entityVoVariablename} = new ${cfg.table.entityVoName}();
+            BeanUtils.copyProperties(${entityVariablename},${entityVoVariablename});
+            return ${entityVoVariablename};
+        }).collect(Collectors.toList());
+
+        return (PageImpl<${cfg.table.entityVoName}>) PageableExecutionUtils.getPage(voRecords, pageable, results::getTotal);
+    }
+#end
+}
+#end

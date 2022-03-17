@@ -1,0 +1,116 @@
+#parse("/templates/MacroStringUtils.vm")
+package ${package.Controller};
+
+import org.springframework.beans.factory.annotation.Autowired;
+#if(${restControllerStyle})
+import ${cfg.package.parentPackage}.util.PageUtils;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+import ${cfg.package.entityVO}.${cfg.table.entityVoName};
+import ${cfg.package.entityCreateVO}.${cfg.table.entityCreateVoName};
+import ${cfg.package.entityUpdateVO}.${cfg.table.entityUpdateVoName};
+import javax.validation.Valid;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${swagger2})
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+#end
+import ${package.Service}.${table.serviceName};
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${swagger2})
+@Api("$!{table.comment}")
+#end
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("#if(${cfg.apiVersion})/${cfg.apiVersion}#end#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+#set($serviceVariablename="#uncapitalize(${table.serviceName})")
+    @Autowired
+    private ${table.serviceName} ${serviceVariablename};
+
+#if(${restControllerStyle})
+    #set($createVoVariablename="#uncapitalize(${cfg.table.entityCreateVoName})")
+    #set($updateVoVariablename="#uncapitalize(${cfg.table.entityUpdateVoName})")
+    #foreach($field in ${table.fields})
+        #if(${field.keyFlag})
+            #set($keyPropertyName=${field.propertyName})
+            #set($keyPropertyUnderline="#camelToUnderline(${field.propertyName})")
+            #set($keyPropertyType=${field.propertyType})
+        #end
+    #end
+    #if(${swagger2})
+    @ApiOperation(value = "创建$!{table.comment}")
+    #end
+    @RequestMapping(method = RequestMethod.POST)
+    public ${cfg.table.entityVoName} create(#if(${swagger2})@ApiParam(value = "$!{table.comment}创建请求",required = true) #end@Valid @RequestBody ${cfg.table.entityCreateVoName} ${createVoVariablename}){
+        return ${serviceVariablename}.create(${createVoVariablename});
+    }
+
+    #if(${swagger2})
+    @ApiOperation(value = "更新$!{table.comment}")
+    #end
+    @RequestMapping(value = "/{${keyPropertyUnderline}}", method = RequestMethod.PATCH)
+    public ${cfg.table.entityVoName} update(
+    #if(${swagger2})@ApiParam(value = "$!{table.comment}标识",required = true) #end@PathVariable("${keyPropertyUnderline}") ${keyPropertyType} ${keyPropertyName},
+    #if(${swagger2})@ApiParam(value = "$!{table.comment}更新请求",required = true) #end@Valid @RequestBody ${cfg.table.entityUpdateVoName} ${updateVoVariablename}){
+        return ${serviceVariablename}.update(${keyPropertyName}, ${updateVoVariablename});
+    }
+
+    #if(${swagger2})
+    @ApiOperation(value = "获取$!{table.comment}")
+    #end
+    @RequestMapping(value = "/{${keyPropertyUnderline}}", method = RequestMethod.GET)
+    public ${cfg.table.entityVoName} get(#if(${swagger2})@ApiParam(value = "$!{table.comment}标识",required = true) #end@PathVariable("${keyPropertyUnderline}") ${keyPropertyType} ${keyPropertyName}){
+        return ${serviceVariablename}.get(${keyPropertyName});
+    }
+
+    #if(${swagger2})
+    @ApiOperation(value = "删除$!{table.comment}")
+    #end
+    @RequestMapping(value = "/{${keyPropertyUnderline}}", method = RequestMethod.DELETE)
+    public int delete(#if(${swagger2})@ApiParam(value = "$!{table.comment}标识",required = true) #end@PathVariable("${keyPropertyUnderline}") ${keyPropertyType} ${keyPropertyName}){
+        return ${serviceVariablename}.delete(${keyPropertyName});
+    }
+
+    #if(${swagger2})
+    @ApiOperation(value = "分页获取$!{table.comment}列表")
+    #end
+    @RequestMapping(value = "", method = RequestMethod.GET)
+    public PageImpl<${cfg.table.entityVoName}> getPageByKeyword(@ApiParam(name = "offset", value = "分页起始行数", required = true) @RequestParam(name = "offset", required = true) int offset,
+    @ApiParam(name = "limit", value = "每页大小", required = true) @RequestParam(name = "limit", required = true) int limit,
+    @ApiParam(name = "sort", value = "排序，默认升序，例如：column_name1 asc,column_name2 desc", required = false) @RequestParam(name = "sort", required = false) String sort,
+    @ApiParam(name = "searchKey", value = "搜索关键字", required = false) @RequestParam(name = "searchKey", required = false) String searchKey
+    ) {
+        Pageable pageable = PageUtils.getPageable(offset, limit, sort, false);
+        return ${serviceVariablename}.getByPageable(pageable, searchKey);
+    }
+#end
+}
+
+#end

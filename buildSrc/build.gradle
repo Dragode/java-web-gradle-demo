@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.boc'
+version = '1.0.0'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.baomidou:mybatis-plus-generator:3.4.0'
+    implementation 'org.apache.velocity:velocity-engine-core:2.1'
+    implementation 'mysql:mysql-connector-java:8.0.27'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.yaml:snakeyaml:1.25'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+}
+
+test {
+    useJUnitPlatform()
+}

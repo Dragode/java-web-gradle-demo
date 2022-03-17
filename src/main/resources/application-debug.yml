@@ -1,0 +1,14 @@
+server:
+  port: 8080
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: info
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: user_name
+    password: password
+
